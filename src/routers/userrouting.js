@@ -90,27 +90,29 @@ router.get('/users', async (req, res) => {
 
 
 router.patch('/users/:id', async (req, res) => {
-    const id = req.params.id
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['name', 'password', 'status']
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+    const id = req.params.id;
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['name', 'password', 'status'];
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
     if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' })
+        return res.status(400).send({ error: 'Invalid updates!' });
     }
 
     try {
-        const user = await User.findById(id).lean();
+        let user = await User.findById(id).lean();
         if (!user) {
-            return res.status(404).send('Message : user not found')
+            return res.status(404).send('Message: user not found');
         }
 
-        updates.forEach((update) => user[update] = req.body[update])
-        await user.save()
-        res.send(user)
+        updates.forEach((update) => user[update] = req.body[update]);
+        await User.findByIdAndUpdate(id, { $set: req.body });
+
+        res.send(user);
     } catch (error) {
-        res.send(error)
+        res.status(500).send(error);
     }
-})
+});
+
 
 router.delete('/users/:id', async (req, res) => {
     const id = req.params.id;
